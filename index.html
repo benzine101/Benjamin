@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โมเดล 3D อาคาร 7 2.0</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        #controls h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .control-group {
+            margin-bottom: 10px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #555;
+        }
+        
+        .control-group input, .control-group select {
+            width: 150px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            max-width: 300px;
+        }
+        
+        .building-info {
+            margin-bottom: 8px;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="controls">
+            <h3>🏢 ควบคุมโมเดล</h3>
+            <div class="control-group">
+                <label>มุมมอง:</label>
+                <select id="viewSelect">
+                    <option value="perspective">มุมมองทั่วไป</option>
+                    <option value="top">มุมมองด้านบน</option>
+                    <option value="front">มุมมองด้านหน้า</option>
+                    <option value="side">มุมมองด้านข้าง</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>แสง:</label>
+                <input type="range" id="lightIntensity" min="0.5" max="2" step="0.1" value="1">
+            </div>
+            
+        </div>
+        
+        <div id="info">
+            <h4>🏗️ ข้อมูลโครงการ</h4>
+            <div class="building-info">
+                <strong>จำนวนอาคาร:</strong> 7 หลัง
+            </div>
+            <div class="building-info">
+                <strong>จำนวนชั้น:</strong> 7 ชั้น/อาคาร
+            </div>
+            <div class="building-info">
+                <strong>รูปแบบ:</strong> อาคารเชื่อมต่อกัน
+            </div>
+            <div class="building-info">
+                <strong>พื้นที่:</strong> ตามแผนผัง Google Map
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        // ตัวแปรหลัก
+        let scene, camera, renderer, buildings = [];
+        let autoRotate = true; // เพิ่มตัวแปร autoRotate
+        
+        const buildingColors = [
+            0xFFFFFF, // สีขาว
+            0xFFFFFF, // สีขาว
+            0xFFFFFF, // สีขาว
+            0xFFFFFF, // สีขาว
+            0xFFFFFF, // สีขาว
+            0xFFFFFF, // สีขาว
+            0xFFFFFF  // สีขาว
+        ];
+        
+        // สเกลขยายขนาดอาคาร 25%
+        const BUILDING_SCALE = 1.25;
+
+        function init() {
+            // สร้าง Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 100, 1000);
+
+            // สร้าง Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(50, 40, 50);
+            camera.lookAt(0, 0, 0);
+
+            // สร้าง Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.sortObjects = true;
+            renderer.setClearColor(0x87CEEB, 1);
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // สร้างแสง
+            createLights();
+            
+            // สร้างพื้น
+            createGround();
+            
+            // สร้างอาคารตามรูปแบบใน Google Map
+            createBuildingsFromMap();
+            
+            // สร้างสภาพแวดล้อม
+            const clouds = createEnvironment(); // เก็บเมฆไว้
+            
+            // เพิ่ม Event Listeners
+            setupControls();
+            
+            // เริ่มการ Render
+            animate(clouds); // ส่งเมฆไปยังฟังก์ชัน animate
+        }
+
+        function createLights() {
+            // แสงแวดล้อม
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            // แสงหลัก
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.1);
+            directionalLight.position.set(50, 60, 25);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 500;
+            directionalLight.shadow.camera.left = -50;
+            directionalLight.shadow.camera.right = 50;
+            directionalLight.shadow.camera.top = 50;
+            directionalLight.shadow.camera.bottom = -50;
+            scene.add(directionalLight);
+
+            // แสงเสริม
+            const spotLight = new THREE.SpotLight(0xffffff, 0.5);
+            spotLight.position.set(-30, 40, 30);
+            spotLight.angle = Math.PI / 4;
+            spotLight.penumbra = 0.1;
+            spotLight.decay = 2;
+            spotLight.distance = 200;
+            scene.add(spotLight);
+        }
+
+        function createGround() {
+            const groundGeometry = new THREE.PlaneGeometry(200, 200);
+            const groundMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x90EE90,
+                transparent: true,
+                opacity: 0.8
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+        }
+
+        function createBuildingsFromMap() {
+            // ตำแหน่งและขนาดของอาคารตาม Google Map (ปรับใหม่)
+            const buildingConfigs = [
+                // ขา A ซ้าย (ลาดลง)
+                { x: -5 * BUILDING_SCALE, z: 15 * BUILDING_SCALE, width: 4 * BUILDING_SCALE, depth: 10 * BUILDING_SCALE, color: buildingColors[0] },
+                { x: -7 * BUILDING_SCALE, z: 5 * BUILDING_SCALE, width: 4 * BUILDING_SCALE, depth: 10 * BUILDING_SCALE, color: buildingColors[1] },
+                { x: -5 * BUILDING_SCALE, z: -5 * BUILDING_SCALE, width: 4 * BUILDING_SCALE, depth: 10 * BUILDING_SCALE, color: buildingColors[2] },
+
+                // ขา A ขวา (ลาดลง)
+                { x: 5 * BUILDING_SCALE, z: 15 * BUILDING_SCALE, width: 4 * BUILDING_SCALE, depth: 10 * BUILDING_SCALE, color: buildingColors[3] },
+                { x: 7 * BUILDING_SCALE, z: 5 * BUILDING_SCALE, width: 4 * BUILDING_SCALE, depth: 10 * BUILDING_SCALE, color: buildingColors[4] },
+                { x: 5 * BUILDING_SCALE, z: -5 * BUILDING_SCALE, width: 4 * BUILDING_SCALE, depth: 10 * BUILDING_SCALE, color: buildingColors[5] },
+
+                { x: 0, z: -12 * BUILDING_SCALE, width: 12 * BUILDING_SCALE, depth: 10 * BUILDING_SCALE, color: buildingColors[6] }
+            ];
+
+            buildingConfigs.forEach((config, index) => {
+                const building = createBuilding(config, index + 1);
+                buildings.push(building.group);
+                scene.add(building.group);
+            });
+        }
+
+        function createBuilding(config, buildingNumber) {
+            const group = new THREE.Group();
+            const floorHeight = 3.2 * BUILDING_SCALE;
+            let totalHeight;
+            
+            if (buildingNumber === 7) {
+                totalHeight = 5 * floorHeight;
+            } else {
+                totalHeight = 7 * floorHeight;
+            }
+
+            let buildingMesh;
+            if (buildingNumber === 7) {
+                const pentagonShape = new THREE.Shape();
+                const r = (config.width / 2);
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    if (i === 0) pentagonShape.moveTo(x, y);
+                    else pentagonShape.lineTo(x, y);
+                }
+                pentagonShape.closePath();
+                const extrudeSettings = {
+                    steps: 1,
+                    depth: totalHeight,
+                    bevelEnabled: true,
+                    bevelThickness: 0.1 * BUILDING_SCALE,
+                    bevelSize: 0.05 * BUILDING_SCALE,
+                    bevelSegments: 3
+                };
+                const geometry = new THREE.ExtrudeGeometry(pentagonShape, extrudeSettings);
+                geometry.rotateX(Math.PI / 2);
+                geometry.translate(config.x, totalHeight, config.z);
+                const material = new THREE.MeshStandardMaterial({ 
+                    color: 0xE8E8E8, // สีเทาอ่อนเหมือนคอนกรีต
+                    roughness: 0.8,
+                    metalness: 0.1,
+                    transparent: true,
+                    opacity: 0.7 // ลดความทึบลงเพื่อให้หน้าต่างเด่นชัด
+                });
+                buildingMesh = new THREE.Mesh(geometry, material);
+                buildingMesh.castShadow = true;
+                buildingMesh.receiveShadow = true;
+                group.add(buildingMesh);
+            } else {
+                const buildingGeometry = new THREE.BoxGeometry(config.width, totalHeight, config.depth);
+                const buildingMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0xE8E8E8, // สีเทาอ่อนเหมือนคอนกรีต
+                    roughness: 0.8,
+                    metalness: 0.1,
+                    transparent: true,
+                    opacity: 0.7 // ลดความทึบลงเพื่อให้หน้าต่างเด่นชัด
+                });
+                buildingMesh = new THREE.Mesh(buildingGeometry, buildingMaterial);
+                buildingMesh.position.set(config.x, totalHeight/2, config.z);
+                buildingMesh.castShadow = true;
+                buildingMesh.receiveShadow = true;
+                group.add(buildingMesh);
+            }
+
+            let maxFloors = (buildingNumber === 7) ? 5 : 7;
+            for (let floor = 1; floor < maxFloors; floor++) {
+                let lineGeometry;
+                if (buildingNumber === 7) {
+                    const pentagonShape = new THREE.Shape();
+                    const r = (config.width / 2);
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                        const x = Math.cos(angle) * r;
+                        const y = Math.sin(angle) * r;
+                        if (i === 0) pentagonShape.moveTo(x, y);
+                        else pentagonShape.lineTo(x, y);
+                    }
+                    pentagonShape.closePath();
+                    const extrudeSettings = {
+                        steps: 1,
+                        depth: 0.1 * BUILDING_SCALE,
+                        bevelEnabled: false
+                    };
+                    lineGeometry = new THREE.ExtrudeGeometry(pentagonShape, extrudeSettings);
+                    lineGeometry.rotateX(Math.PI / 2);
+                } else {
+                    lineGeometry = new THREE.PlaneGeometry(config.width, config.depth);
+                }
+                const lineMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0xFFFFFF,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.18
+                });
+                const line = new THREE.Mesh(lineGeometry, lineMaterial);
+                if (buildingNumber === 7) {
+                    line.position.set(config.x, floor * floorHeight, config.z);
+                } else {
+                    line.position.set(config.x, floor * floorHeight, config.z);
+                    line.rotation.x = Math.PI / 2;
+                }
+                group.add(line);
+            }
+
+            createWindowsAndFrames(group, config, totalHeight, buildingNumber, BUILDING_SCALE);
+            createDoor(group, config, totalHeight, BUILDING_SCALE);
+            createFlatRoof(group, config, totalHeight, buildingNumber, BUILDING_SCALE);
+
+            // เพิ่มห้องสีชัดเจนสำหรับตึกสี่เหลี่ยมเท่านั้น
+            if (buildingNumber !== 7) {
+                createColoredRooms(group, config, totalHeight, buildingNumber, BUILDING_SCALE);
+            }
+
+            return { group, config };
+        }
+
+        function createWindowsAndFrames(group, config, totalHeight, buildingNumber, scale) {
+            const windowSize = 0.9 * scale;
+            const frameSize = windowSize + 0.12 * scale;
+            const windowInset = 0.05 * scale;
+            const frameInset = 0.045 * scale;
+            const margin = windowSize / 2 + 0.15 * scale;
+            const windowMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x3a5a7a,
+                roughness: 0.15,
+                metalness: 0.7,
+                transparent: true,
+                opacity: 0.45,
+                emissive: 0x0a1a2a,
+                emissiveIntensity: 0.12
+            });
+            const frameMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x222222,
+                metalness: 0.5,
+                roughness: 0.3
+            });
+            let maxFloors = (buildingNumber === 7) ? 5 : 7;
+            if (buildingNumber === 7) {
+                return;
+            }
+            // ตึกสี่เหลี่ยม (ใช้โค้ดเดิม)
+            const numFrontBack = Math.max(1, Math.floor((config.width - 2 * margin) / 2));
+            for (let floor = 0; floor < maxFloors; floor++) {
+                for (let i = 0; i < numFrontBack; i++) {
+                    const x = config.x - config.width/2 + margin + (i + 0.5) * ((config.width - 2 * margin) / numFrontBack);
+                    // ด้านหน้า
+                    const windowFront = new THREE.Mesh(
+                        new THREE.PlaneGeometry(windowSize, windowSize),
+                        windowMaterial
+                    );
+                    windowFront.position.set(
+                        x,
+                        3.2/2 + floor * 3.2 * scale,
+                        config.z + config.depth/2 - windowInset * scale
+                    );
+                    windowFront.rotation.y = 0;
+                    group.add(windowFront);
+                    // กรอบหน้าต่างด้านหน้า
+                    const frameFront = new THREE.Mesh(
+                        new THREE.PlaneGeometry(frameSize, frameSize),
+                        frameMaterial
+                    );
+                    frameFront.position.set(
+                        x,
+                        windowFront.position.y,
+                        config.z + config.depth/2 - frameInset * scale
+                    );
+                    frameFront.rotation.y = 0;
+                    group.add(frameFront);
+                    // ด้านหลัง
+                    const windowBack = new THREE.Mesh(
+                        new THREE.PlaneGeometry(windowSize, windowSize),
+                        windowMaterial
+                    );
+                    windowBack.position.set(
+                        x,
+                        3.2/2 + floor * 3.2 * scale,
+                        config.z - config.depth/2 + windowInset * scale
+                    );
+                    windowBack.rotation.y = Math.PI;
+                    group.add(windowBack);
+                    // กรอบหน้าต่างหลัง
+                    const frameBack = new THREE.Mesh(
+                        new THREE.PlaneGeometry(frameSize, frameSize),
+                        frameMaterial
+                    );
+                    frameBack.position.set(
+                        x,
+                        windowBack.position.y,
+                        config.z - config.depth/2 + frameInset * scale
+                    );
+                    frameBack.rotation.y = Math.PI;
+                    group.add(frameBack);
+                }
+            }
+            const numSide = Math.max(1, Math.floor((config.depth - 2 * margin) / 2));
+            for (let floor = 0; floor < maxFloors; floor++) {
+                for (let i = 0; i < numSide; i++) {
+                    const z = config.z - config.depth/2 + margin + (i + 0.5) * ((config.depth - 2 * margin) / numSide);
+                    // ด้านซ้าย
+                    const windowLeft = new THREE.Mesh(
+                        new THREE.PlaneGeometry(windowSize, windowSize),
+                        windowMaterial
+                    );
+                    windowLeft.position.set(
+                        config.x - config.width/2 + windowInset * scale,
+                        3.2/2 + floor * 3.2 * scale,
+                        z
+                    );
+                    windowLeft.rotation.y = -Math.PI / 2;
+                    group.add(windowLeft);
+                    // กรอบหน้าต่างด้านซ้าย
+                    const frameLeft = new THREE.Mesh(
+                        new THREE.PlaneGeometry(frameSize, frameSize),
+                        frameMaterial
+                    );
+                    frameLeft.position.set(
+                        config.x - config.width/2 + frameInset * scale,
+                        windowLeft.position.y,
+                        z
+                    );
+                    frameLeft.rotation.y = -Math.PI / 2;
+                    group.add(frameLeft);
+                    // ด้านขวา
+                    const windowRight = new THREE.Mesh(
+                        new THREE.PlaneGeometry(windowSize, windowSize),
+                        windowMaterial
+                    );
+                    windowRight.position.set(
+                        config.x + config.width/2 - windowInset * scale,
+                        3.2/2 + floor * 3.2 * scale,
+                        z
+                    );
+                    windowRight.rotation.y = Math.PI / 2;
+                    group.add(windowRight);
+                    // กรอบหน้าต่างด้านขวา
+                    const frameRight = new THREE.Mesh(
+                        new THREE.PlaneGeometry(frameSize, frameSize),
+                        frameMaterial
+                    );
+                    frameRight.position.set(
+                        config.x + config.width/2 - frameInset * scale,
+                        windowRight.position.y,
+                        z
+                    );
+                    frameRight.rotation.y = Math.PI / 2;
+                    group.add(frameRight);
+                }
+            }
+        }
+
+        function createPentagonWindows(group, config, totalHeight, scale) {
+            const windowSize = 0.8 * scale;
+            const frameSize = windowSize + 0.1 * scale;
+            const windowInset = 0.05 * scale;
+            const frameInset = 0.04 * scale;
+            
+            const windowMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x3a5a7a,
+                roughness: 0.15,
+                metalness: 0.7,
+                transparent: true,
+                opacity: 0.6,
+                emissive: 0x0a1a2a,
+                emissiveIntensity: 0.15
+            });
+            const frameMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x222222,
+                metalness: 0.5,
+                roughness: 0.3
+            });
+            
+            const floorHeight = 3.2 * scale;
+            const r = config.width / 2;
+            
+            // สร้างหน้าต่างรอบตึกห้าเหลี่ยม
+            for (let floor = 0; floor < 5; floor++) {
+                for (let side = 0; side < 5; side++) {
+                    const angle = (side / 5) * Math.PI * 2 - Math.PI / 2;
+                    const x = config.x + Math.cos(angle) * (r - windowInset * scale);
+                    const z = config.z + Math.sin(angle) * (r - windowInset * scale);
+                    
+                    // หน้าต่าง
+                    const window = new THREE.Mesh(
+                        new THREE.PlaneGeometry(windowSize, windowSize),
+                        windowMaterial
+                    );
+                    window.position.set(
+                        x,
+                        floorHeight/2 + floor * floorHeight,
+                        z
+                    );
+                    window.rotation.y = angle + Math.PI / 2;
+                    group.add(window);
+                    
+                    // กรอบหน้าต่าง
+                    const frame = new THREE.Mesh(
+                        new THREE.PlaneGeometry(frameSize, frameSize),
+                        frameMaterial
+                    );
+                    frame.position.set(
+                        config.x + Math.cos(angle) * (r - frameInset * scale),
+                        floorHeight/2 + floor * floorHeight,
+                        config.z + Math.sin(angle) * (r - frameInset * scale)
+                    );
+                    frame.rotation.y = angle + Math.PI / 2;
+                    group.add(frame);
+                }
+            }
+        }
+
+        function createDoor(group, config, totalHeight, scale) {
+            const doorWidth = 1.2 * scale;
+            const doorHeight = 2.2 * scale;
+            const doorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x444444,
+                roughness: 0.4,
+                metalness: 0.2
+            });
+            const door = new THREE.Mesh(
+                new THREE.PlaneGeometry(doorWidth, doorHeight),
+                doorMaterial
+            );
+            door.position.set(config.x, doorHeight/2, config.z + config.depth/2 + 0.03 * scale);
+            group.add(door);
+        }
+
+        function createFlatRoof(group, config, totalHeight, buildingNumber, scale = 1) {
+            if (buildingNumber === 7) {
+                // หลังคาห้าเหลี่ยมขนานกับตัวตึก (shape centered at 0,0)
+                const r = config.width / 2 + 0.1 * scale; // ขยายเล็กน้อยให้คลุมขอบและสัมพันธ์กับ scale
+                const pentagonShape = new THREE.Shape();
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                    const x = Math.cos(angle) * r;
+                    const z = Math.sin(angle) * r;
+                    if (i === 0) pentagonShape.moveTo(x, z);
+                    else pentagonShape.lineTo(x, z);
+                }
+                pentagonShape.closePath();
+                const geometry = new THREE.ShapeGeometry(pentagonShape);
+                geometry.rotateX(Math.PI / 2);
+                const material = new THREE.MeshStandardMaterial({ 
+                    color: 0xcccccc,
+                    roughness: 0.3,
+                    metalness: 0.1
+                });
+                const roof = new THREE.Mesh(geometry, material);
+                roof.position.set(config.x, totalHeight + 0.09 * scale, config.z);
+                roof.castShadow = true;
+                group.add(roof);
+            } else {
+                // หลังคาสี่เหลี่ยม
+                const roofGeometry = new THREE.BoxGeometry(
+                    config.width + 0.2 * scale,
+                    0.18 * scale,
+                    config.depth + 0.2 * scale
+                );
+                const roofMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0xcccccc,
+                    roughness: 0.3,
+                    metalness: 0.1
+                });
+                const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+                roof.position.set(config.x, totalHeight + 0.09 * scale, config.z);
+                roof.castShadow = true;
+                group.add(roof);
+            }
+        }
+
+        function createEnvironment() {
+            // สร้างต้นไม้รอบอาคาร
+            for (let i = 0; i < 15; i++) {
+                const tree = createTree();
+                tree.position.set(
+                    (Math.random() - 0.5) * 100,
+                    0,
+                    (Math.random() - 0.5) * 100
+                );
+                // หลีกเลี่ยงการวางต้นไม้ใกล้อาคาร
+                if (Math.abs(tree.position.x) > 30 || Math.abs(tree.position.z) > 25) {
+                    scene.add(tree);
+                }
+            }
+
+            // สร้างเมฆ
+            return createClouds();
+        }
+
+        function createTree() {
+            const group = new THREE.Group();
+            
+            // ลำต้น
+            const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.5, 4);
+            const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513});
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.y = 2;
+            trunk.castShadow = true;
+            group.add(trunk);
+            
+            // ใบไม้
+            const leavesGeometry = new THREE.SphereGeometry(2.5);
+            const leavesMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+            const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+            leaves.position.y = 6;
+            leaves.castShadow = true;
+            group.add(leaves);
+            
+            return group;
+        }
+
+        function createClouds() {
+            const clouds = []; // เก็บเมฆไว้ในอาร์เรย์
+            for (let i = 0; i < 8; i++) {
+                const cloud = new THREE.Group();
+                cloud.userData = { isCloud: true }; // เพิ่ม flag เพื่อระบุว่าเป็นเมฆ
+                
+                for (let j = 0; j < 5; j++) {
+                    const cloudPart = new THREE.Mesh(
+                        new THREE.SphereGeometry(3 + Math.random() * 2),
+                        new THREE.MeshPhongMaterial({ 
+                            color: 0xffffff,
+                            transparent: true,
+                            opacity: 0.8
+                        })
+                    );
+                    cloudPart.position.set(
+                        (Math.random() - 0.5) * 10,
+                        0,
+                        (Math.random() - 0.5) * 10
+                    );
+                    cloud.add(cloudPart);
+                }
+                
+                cloud.position.set(
+                    (Math.random() - 0.5) * 200,
+                    60 + Math.random() * 20,
+                    (Math.random() - 0.5) * 200
+                );
+                clouds.push(cloud); // เพิ่มเมฆลงในอาร์เรย์
+                scene.add(cloud);
+            }
+            return clouds; // ส่งคืนอาร์เรย์เมฆ
+        }
+
+        function setupControls() {
+            // การควบคุมมุมมอง
+            document.getElementById('viewSelect').addEventListener('change', (e) => {
+                switch(e.target.value) {
+                    case 'perspective':
+                        camera.position.set(50, 40, 50);
+                        camera.lookAt(0, 0, 0);
+                        break;
+                    case 'top':
+                        camera.position.set(0, 80, 0);
+                        camera.lookAt(0, 0, 0);
+                        break;
+                    case 'front':
+                        camera.position.set(0, 20, 60);
+                        camera.lookAt(0, 10, 0);
+                        break;
+                    case 'side':
+                        camera.position.set(60, 20, 0);
+                        camera.lookAt(0, 10, 0);
+                        break;
+                }
+            });
+
+            // การควบคุมแสง
+            document.getElementById('lightIntensity').addEventListener('input', (e) => {
+                scene.children.forEach(child => {
+                    if (child instanceof THREE.DirectionalLight) {
+                        child.intensity = parseFloat(e.target.value);
+                    }
+                });
+            });
+
+           
+
+            // การควบคุมเมาส์
+            let mouseDown = false;
+            let mouseX = 0;
+            let mouseY = 0;
+
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                mouseDown = true;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                autoRotate = false;
+            });
+
+            renderer.domElement.addEventListener('mouseup', () => {
+                mouseDown = false;
+                setTimeout(() => { autoRotate = true; }, 2000);
+            });
+
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (!mouseDown) return;
+                
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+                
+                // หมุนกล้อง
+                const spherical = new THREE.Spherical();
+                spherical.setFromVector3(camera.position);
+                spherical.theta -= deltaX * 0.01;
+                spherical.phi += deltaY * 0.01;
+                spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+                
+                camera.position.setFromSpherical(spherical);
+                camera.lookAt(0, 0, 0);
+                
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            // การ Zoom ด้วยล้อเมาส์
+            renderer.domElement.addEventListener('wheel', (e) => {
+                const zoomSpeed = 1;
+                const direction = new THREE.Vector3();
+                camera.getWorldDirection(direction);
+                
+                if (e.deltaY > 0) {
+                    camera.position.add(direction.multiplyScalar(-zoomSpeed * 5));
+                } else {
+                    camera.position.add(direction.multiplyScalar(zoomSpeed * 5));
+                }
+            });
+
+            // ปรับขนาดหน้าต่าง
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        function animate(clouds) {
+            requestAnimationFrame(() => animate(clouds));
+            
+            // เคลื่อนไหวเฉพาะเมฆ
+            if (clouds && clouds.length > 0) {
+                clouds.forEach(cloud => {
+                    if (cloud.userData && cloud.userData.isCloud) {
+                        cloud.position.x += 0.1;
+                        if (cloud.position.x > 100) {
+                            cloud.position.x = -100;
+                        }
+                    }
+                });
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+       
+
+        // sheetId และ range สำหรับ sheet ที่กำหนด
+        const sheetId = '1mNhO3gEdTDy_PYWezLK15VILzljcTiO378e2GcbLBsE';
+        const range = 'A1:A7';
+
+        // ฟังก์ชันเริ่มต้นใหม่ ให้ใช้สีขาวแทนการโหลดจากชีท
+        function startAppWithSheetColors() {
+            // ใช้สีขาวสำหรับทุกตึก
+            for (let i = 0; i < buildingColors.length; i++) {
+                buildingColors[i] = 0xFFFFFF; // สีขาว
+            }
+            // เริ่มต้นโปรแกรม
+            init();
+        }
+
+        // เรียกใช้แทน init();
+        startAppWithSheetColors();
+
+        function createColoredRooms(group, config, totalHeight, buildingNumber, scale) {
+            const roomColors = [
+                0xFF0000, // สีแดงสด
+                0x00FF00, // สีเขียวสด
+                0x0000FF, // สีน้ำเงินสด
+                0xFFFF00, // สีเหลืองสด
+                0xFF00FF, // สีม่วงสด
+                0x00FFFF, // สีฟ้าเขียวสด
+                0xFF8000  // สีส้มสด
+            ];
+            
+            const floorHeight = 3.2 * scale;
+            const roomWidth = config.width * 0.4; // ลดขนาดลงอีก
+            const roomDepth = config.depth * 0.4; // ลดขนาดลงอีก
+            const roomHeight = floorHeight * 0.6; // ลดความสูงลงอีก
+            
+            for (let floor = 0; floor < 7; floor++) {
+                // ข้ามชั้นที่ 2, 4, และ 6 (index 1, 3, 5)
+                if (floor === 1 || floor === 3 || floor === 5) {
+                    continue;
+                }
+                
+                const roomColor = roomColors[floor % roomColors.length];
+                const roomGeometry = new THREE.BoxGeometry(roomWidth, roomHeight, roomDepth);
+                const roomMaterial = new THREE.MeshBasicMaterial({ 
+                    color: roomColor,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                const room = new THREE.Mesh(roomGeometry, roomMaterial);
+                
+                // จัดตำแหน่งห้องตามฝั่งของอาคาร
+                let roomX, roomZ;
+                
+                if (buildingNumber >= 1 && buildingNumber <= 3) {
+                    // อาคารฝั่งซ้าย - ห้องอยู่ชิดด้านข้างซ้าย
+                    roomX = config.x - (config.width * 0.4);
+                    roomZ = config.z;
+                } else if (buildingNumber >= 4 && buildingNumber <= 6) {
+                    // อาคารฝั่งขวา - ห้องอยู่ชิดด้านข้างขวา
+                    roomX = config.x + (config.width * 0.4);
+                    roomZ = config.z;
+                } else {
+                    // อาคารอื่นๆ - ห้องอยู่กลาง
+                    roomX = config.x;
+                    roomZ = config.z;
+                }
+                
+                room.position.set(
+                    roomX,
+                    floorHeight/2 + floor * floorHeight,
+                    roomZ
+                );
+                
+                group.add(room);
+            }
+        }
+    </script>
+</body>
+</html>
