@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Dashboard Model</title>
+    <title>3D 4.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped:wght@100..900&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Noto Sans Thai Looped', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
         }
         
@@ -75,9 +78,190 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
         }
+        
+        #pieChartContainer {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            width: 320px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            padding: 16px;
+            z-index: 110;
+        }
+        
+        #pieChartDiv {
+            width: 280px;
+            height: 200px;
+        }
+        
+        #chartContainer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            left: auto;
+            transform: none;
+            width: 320px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            padding: 16px;
+            z-index: 100;
+        }
+        
+        #chartDiv {
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-sizing: border-box;
+        }
+        
+        /* เพิ่ม CSS สำหรับ risk summary และรายละเอียด */
+        .risk-summary {
+          background: #e3f2fd;
+          border-radius: 8px;
+          padding: 10px 14px;
+          margin-bottom: 10px;
+          text-align: center;
+        }
+        .risk-title {
+          font-weight: bold;
+          color: #1976d2;
+          font-size: 16px;
+          margin-bottom: 4px;
+        }
+        .risk-value {
+          color: #d32f2f;
+          font-size: 15px;
+          font-weight: 500;
+        }
+        .risk-level-box {
+          background: #fff3e0;
+          border-left: 5px solid #ffa726;
+          border-radius: 6px;
+          padding: 8px 12px;
+          margin-bottom: 10px;
+          font-size: 14px;
+        }
+        .risk-level-label {
+          font-weight: bold;
+          color: #ff9800;
+        }
+        .risk-level-value {
+          color: #d32f2f;
+          font-weight: bold;
+          margin-left: 6px;
+        }
+        .risk-detail-list {
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          box-sizing: border-box;
+          max-height: 340px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          /* scrollbar สวยงาม */
+          scrollbar-width: thin;
+          scrollbar-color: #90caf9 #e3f2fd;
+          margin-right: -8px;
+          margin-top: 18px;
+        }
+        .risk-detail-list::-webkit-scrollbar {
+          width: 8px;
+          background: transparent;
+        }
+        .risk-detail-list::-webkit-scrollbar-thumb {
+          background: #90caf9;
+          border-radius: 4px;
+        }
+        .risk-detail-row:nth-child(even) {
+          background: #f5fafd;
+        }
+        .risk-detail-row:nth-child(odd) {
+          background: #fff;
+        }
+        .risk-detail-label {
+          color: #333;
+        }
+        .risk-detail-value {
+          color: #1976d2;
+          font-weight: 500;
+          padding-right: 16px;
+        }
+        .risk-detail-value.passed {
+          color: #388e3c;
+          font-weight: bold;
+        }
+        .risk-detail-value.failed {
+          color: #d32f2f;
+          font-weight: bold;
+        }
+        .risk-detail-value.pending {
+          color: #ffa000;
+          font-weight: bold;
+        }
+        .risk-detail-value .status-icon {
+          margin-right: 4px;
+          font-size: 16px;
+          vertical-align: middle;
+        }
+        /* DEBUG: ย้ายและ force hover effect */
+        .risk-detail-row {
+          width: 100%;
+          box-sizing: border-box;
+          margin: 0;
+          padding: 6px 0;
+          display: flex;
+          justify-content: space-between;
+          border-bottom: 1px solid #f0f0f0;
+          font-size: 14px;
+          transition: none;
+          align-items: center;
+        }
+        /* ลบ hover effect ออก */
+        /* .risk-detail-row:hover {
+          background: #e3f2fd !important;
+          transform: scale(1.02) !important;
+        } */
+
+        #mainHeader {
+          width: 600px;
+          max-width: 90vw;
+          background: rgba(255,255,255,0.92);
+          box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+          padding: 18px 0 12px 0;
+          text-align: center;
+          position: fixed;
+          top: 24px;
+          left: 50%;
+          transform: translateX(-50%);
+          border-radius: 16px;
+          z-index: 300;
+          font-family: 'Noto Sans Thai Looped', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-header-icon {
+          font-size: 2.2rem;
+          vertical-align: middle;
+          margin-right: 12px;
+          font-family: 'Noto Sans Thai Looped', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-title {
+          font-size: 2rem;
+          font-weight: bold;
+          color: #1976d2;
+          vertical-align: middle;
+          letter-spacing: 1px;
+          font-family: 'Noto Sans Thai Looped', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
     </style>
 </head>
 <body>
+    <div id="mainHeader">
+      <span class="main-header-icon" aria-label="IT">🛡️</span>
+      <span class="main-title">ระบบความเสี่ยงส่วนกลาง</span>
+    </div>
     <div id="container">
         <div id="controls">
             <h3>🏢 ควบคุมโมเดล</h3>
@@ -94,17 +278,70 @@
                 <label>แสง:</label>
                 <input type="range" id="lightIntensity" min="0.5" max="2" step="0.1" value="1">
             </div>
-            
+            <div class="control-group">
+                <label>แหล่งข้อมูล:</label>
+                <select id="dataSource">
+                    <option value="mock">ข้อมูลจำลอง</option>
+                    <option value="sheets">Google Sheets</option>
+                    <option value="excel">Excel File</option>
+                </select>
+            </div>
+            <div class="control-group" id="fileUploadGroup" style="display: none;">
+                <label>อัปโหลด Excel:</label>
+                <input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
+            </div>
+            <div class="control-group">
+                <label>คอลัมน์สำหรับกราฟ:</label>
+                <select id="chartColumns">
+                    <option value="0,1">คอลัมน์ 1-2 (Building, Floor)</option>
+                    <option value="3,4" selected>คอลัมน์ 4-5 (Item 1, Count 1)</option>
+                    <option value="5,6">คอลัมน์ 6-7 (Item 2, Count 2)</option>
+                    <option value="custom">กำหนดเอง</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <button onclick="testGoogleSheets()" style="padding: 5px 10px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">ทดสอบ Google Sheets</button>
+            </div>
+            <div class="control-group">
+                <button onclick="refreshGoogleSheets()" style="padding: 5px 10px; background: #43a047; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">รีโหลดข้อมูล Google Sheets</button>
+            </div>
+            <div class="control-group">
+                <button onclick="showPieChartFromColumnB()" style="padding: 5px 10px; background: #FF9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">Pie Chart การประเมิน</button>
+            </div>
+            <div class="control-group">
+                <button onclick="showPieChartForRoom()" style="padding: 5px 10px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">Pie Chart การประเมินความเสี่ยง</button>
+            </div>
         </div>
         
+        <div id="pieChartContainer" style="display: none; position: absolute; left: 20px; bottom: 20px; width: 320px; background: #fff; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); padding: 16px; z-index: 110;">
+            <h3 style="margin-top:0; font-size:16px; color:#333;">Pie Chart ผลการประเมินความเสี่ยง</h3>
+            <div id="pieChartDiv" style="width: 280px; height: 200px;"></div>
+            <button onclick="closePieChart()" style="margin-top: 10px; padding: 5px 10px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer;">ปิด</button>
+        </div>
+        
+        <div id="chartContainer" style="display: none; position: absolute; top: 20px; right: 20px; left: auto; transform: none; width: 320px; background: rgba(255,255,255,0.95); border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); padding: 16px; z-index: 100;">
+            <h3 id="chartTitle">ข้อมูลห้อง</h3>
+            <div id="chartDiv" style="width: 280px; height: 470px;"></div>
+            <button onclick="closeChart()" style="margin-top: 10px; padding: 5px 10px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer;">ปิด</button>
+        </div>
+        <div id="pieChartContainer2" style="display: none; position: absolute; bottom: 20px; right: 380px; left: auto; transform: none; width: 320px; background: #fff; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); padding: 16px; z-index: 110;">
+            <h3 style="margin-top:0; font-size:16px; color:#333;">Pie Chart การประเมินความเสี่ยง</h3>
+            <div id="pieChartDiv2" style="width: 280px; height: 200px;"></div>
+            <button onclick="closePieChart2()" style="margin-top: 10px; padding: 5px 10px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer;">ปิด</button>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // ตัวแปรหลัก
         let scene, camera, renderer, buildings = [];
         let autoRotate = true; // เพิ่มตัวแปร autoRotate
+        let raycaster, mouse; // เพิ่มตัวแปรสำหรับ raycasting
+        let selectedRoom = null; // เก็บห้องที่เลือก
+        let uploadedExcelData = null; // เก็บข้อมูล Excel ที่อัปโหลด
+        let sheetData = null; // ตัวแปรเก็บข้อมูล Google Sheet
         
         const buildingColors = [
             0xFFFFFF, // สีขาว
@@ -118,6 +355,33 @@
         
         // สเกลขยายขนาดอาคาร 25%
         const BUILDING_SCALE = 1.25;
+
+        const roomDataMapping = {
+          'กองตรวจราชการ': { row: 3, col: 'B' },
+          'ศูนย์ปฏิบัติการต่อต้านการทุจริต': { row: 4, col: 'B' },
+          'สำนักสารนิเทศ': { row: 5, col: 'B' },
+          'วิทยาลัยนักบริหารสาธารณสุข': { row: 6, col: 'B' },
+          'สํานักงานเลขานุการคณะกรรมการบําบัดรักษาและฟื้นฟูผู้ติดยาเสพติด': { row: 7, col: 'B' },
+          'สำนักวิชาการสาธารณสุข': { row: 8, col: 'B' },
+          'สำนักส่งเสริมสนับสนุนการผลิต พัฒนาแพทย์และบุคลากรทางการแพทย์': { row: 9, col: 'B' },
+          'สำนักสุขภาพดิจิทัล': { row: 10, col: 'B' },
+          'กองบริหารทรัพยากรบุคคล': { row: 11, col: 'B' },
+          'สำนักงานมาตรฐานวินัยและระบบคุณธรรม': { row: 12, col: 'B' },
+          'กองบริหารการคลัง': { row: 13, col: 'B' },
+          'กองกลาง': { row: 14, col: 'B' },
+          'สำนักส่งเสริมและสนับสนุนอาหารปลอดภัย': { row: 15, col: 'B' },
+          'กองยุทธศาสตร์และแผนงาน': { row: 16, col: 'B' },
+          'กองเศรษฐกิจสุขภาพและหลักประกันสุขภาพ': { row: 17, col: 'B' },
+          'กองสนับสนุนระบบสุขภาพปฐมภูมิ': { row: 18, col: 'B' },
+          'กองสาธารณสุขฉุกเฉิน': { row: 19, col: 'B' },
+          'กลุ่มตรวจสอบภายใน': { row: 20, col: 'B' },
+          'กลุ่มพัฒนาระบบบริหาร': { row: 21, col: 'B' },
+          'กองกฎหมาย': { row: 22, col: 'B' },
+          'กองการต่างประเทศ': { row: 23, col: 'B' },
+          'กองการพยาบาล': { row: 24, col: 'B' },
+          'กองบริหารการสาธารณสุข': { row: 25, col: 'B' },
+          'ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร': { row: 26, col: 'B' }
+        };
 
         function init() {
             // สร้าง Scene
@@ -138,6 +402,10 @@
             renderer.sortObjects = true;
             renderer.setClearColor(0x87CEEB, 1);
             document.getElementById('container').appendChild(renderer.domElement);
+
+            // สร้าง Raycaster และ Mouse
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
 
             // สร้างแสง
             createLights();
@@ -188,7 +456,7 @@
         }
 
         function createGround() {
-            const groundGeometry = new THREE.PlaneGeometry(200, 200);
+            const groundGeometry = new THREE.PlaneGeometry(100, 100);
             const groundMaterial = new THREE.MeshLambertMaterial({ 
                 color: 0x90EE90,
                 transparent: true,
@@ -333,7 +601,334 @@
                 createColoredRooms(group, config, totalHeight, buildingNumber, BUILDING_SCALE);
             }
 
+            // เพิ่มห้องขนาดเล็กในตึกห้าเหลี่ยม (buildingNumber === 7)
+            // (ลบห้องสีแดงออก ไม่ต้องสร้าง)
+            // if (buildingNumber === 7) {
+            //     ...
+            // }
+
             return { group, config };
+        }
+
+        function getRoomType(floor, buildingNumber) {
+            const roomTypes = [
+                "ห้องเรียน",
+                "ห้องปฏิบัติการ",
+                "ห้องประชุม",
+                "ห้องทำงาน",
+                "ห้องสมุด",
+                "ห้องอาหาร",
+                "ห้องพักผ่อน"
+            ];
+            
+            if (buildingNumber >= 1 && buildingNumber <= 3) {
+                return `ห้องเรียน ${floor + 1}`;
+            } else if (buildingNumber >= 4 && buildingNumber <= 6) {
+                return `ห้องปฏิบัติการ ${floor + 1}`;
+            } else {
+                return roomTypes[floor % roomTypes.length];
+            }
+        }
+
+        function getCellValue(sheetData, row, col) {
+          const colIndex = col.charCodeAt(0) - 'A'.charCodeAt(0);
+          return (sheetData[row - 1] && sheetData[row - 1][colIndex]) || '';
+        }
+
+        // โหลดข้อมูล Google Sheet เมื่อเริ่มต้น
+        async function fetchSheetData() {
+          const apiKey = 'AIzaSyCcOGXLl1WhKknUNzuc16GeH75huYWovhc';
+          const sheetId = '1bdPov0X_M_IRYxRN-V6XH_nQzfTNREO9XAbdOnd2u_g';
+          const range = 'A1:Z100';
+          const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          sheetData = data.values;
+        }
+        fetchSheetData(); // เรียกใช้เมื่อเริ่มต้น
+
+        function onRoomClick(room) {
+            selectedRoom = room;
+            const roomName = room.userData.roomType;
+            lastSelectedRoomName = roomName;
+            const mapping = roomDataMapping[roomName];
+            if (!mapping) {
+                alert('ไม่พบ mapping สำหรับห้องนี้');
+                return;
+            }
+            if (!sheetData) {
+                alert('กำลังโหลดข้อมูล Google Sheet กรุณารอสักครู่');
+                return;
+            }
+            // ค้นหา row จากชื่อห้องใน sheetData โดยตรง
+            let row = null;
+            for (let i = 1; i < sheetData.length; i++) {
+              if ((sheetData[i][0] || '').replace(/\s+/g, '').toLowerCase() === roomName.replace(/\s+/g, '').toLowerCase()) {
+                row = sheetData[i];
+                break;
+              }
+            }
+            const header = sheetData[0];
+            if (!row) {
+              alert('ไม่พบข้อมูลสำหรับห้องนี้ใน Google Sheet');
+              return;
+            }
+            const value = getCellValue(sheetData, mapping.row, mapping.col);
+            document.getElementById('chartTitle').textContent =
+                `อาคาร ${room.userData.buildingNumber} - ${room.userData.roomType}`;
+            let listHtml = '<div class="risk-detail-list">';
+            for (let j = 2; j <= 12; j++) { // C ถึง M
+                if (header[j] && header[j] !== 'ระดับความเสี่ยง') {
+                    const val = (row && row[j] !== undefined) ? row[j] : '-';
+                    // เพิ่ม class และไอคอนสถานะ
+                    let statusClass = '';
+                    let icon = '';
+                    if (val === "ผ่านเกณฑ์") {
+                        statusClass = 'passed';
+                        icon = '<span class="status-icon">✔️</span>';
+                    } else if (val === "ไม่ผ่านเกณฑ์") {
+                        statusClass = 'failed';
+                        icon = '<span class="status-icon">❌</span>';
+                    } else if (val === "รอตรวจสอบ" || (typeof val === 'string' && val.trim().toLowerCase() === 'optional')) {
+                        statusClass = 'pending';
+                        icon = '<span class="status-icon">⏳</span>';
+                    }
+                    listHtml += `<div class='risk-detail-row'><span class='risk-detail-label'>${header[j]}</span><span class='risk-detail-value ${statusClass}'>${icon}${val}</span></div>`;
+                }
+            }
+            listHtml += '</div>';
+            // ดึงค่าระดับความเสี่ยงจากคอลัมน์ C (index 2)
+            const riskValue = row[1] || '-';
+            const riskLevel = row[2] || '-';
+            document.getElementById('chartDiv').innerHTML = `
+                <div class='risk-summary'>
+                  <div class='risk-title'>ผลการประเมินความเสี่ยง</div>
+                  <div class='risk-value'>${riskValue}</div>
+                </div>
+                ${listHtml}
+            `;
+            document.getElementById('chartContainer').style.display = 'block';
+            document.getElementById('pieChartContainer').style.display = 'none'; // ซ่อน Pie Chart การประเมิน (อันเดิม)
+            showPieChartForRoom(header, row); // ส่ง header, row ไปวาด Pie Chart แบบใหม่
+        }
+
+        function closeChart() {
+            document.getElementById('chartContainer').style.display = 'none';
+            document.getElementById('pieChartContainer').style.display = 'none';
+            selectedRoom = null;
+        }
+
+        function closePieChart() {
+            document.getElementById('pieChartContainer').style.display = 'none';
+        }
+
+        function createChartsForRoom(data, roomData) {
+            let header = data[0];
+            let matchedRow = data[1];
+            if (!matchedRow) {
+                alert('ไม่พบข้อมูลสำหรับห้องนี้ (roomType: ' + roomData.roomType + ')');
+                return;
+            }
+            const chartData = [['หัวข้อ', 'ค่า']];
+            for (let j = 1; j < matchedRow.length; j++) {
+                if (header[j] && matchedRow[j]) {
+                    let value = matchedRow[j];
+                    if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                        value = parseFloat(value);
+                    }
+                    chartData.push([header[j], value]);
+                }
+            }
+            console.log('DEBUG: chartData ที่จะใช้วาดกราฟ:', chartData);
+            drawColumnChart(chartData, roomData);
+            drawPieChart(chartData, roomData);
+        }
+
+        function drawColumnChart(chartData, roomData) {
+            google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(() => {
+                try {
+                    const chart = new google.visualization.ColumnChart(document.getElementById('chartDiv'));
+                    const options = {
+                        title: `${roomData.roomType}`,
+                        width: 350,
+                        height: 250,
+                        backgroundColor: 'transparent',
+                        titleTextStyle: { color: '#333', fontSize: 14 },
+                        legend: { textStyle: { color: '#333' } },
+                        hAxis: { textStyle: { color: '#333' } },
+                        vAxis: { textStyle: { color: '#333' } },
+                        chartArea: { left: 40, top: 30, width: '80%', height: '70%' }
+                    };
+                    chart.draw(google.visualization.arrayToDataTable(chartData), options);
+                } catch (error) {
+                    alert('เกิดข้อผิดพลาดในการสร้าง Column Chart: ' + error.message);
+                }
+            });
+        }
+
+        function drawPieChart(chartData, roomData) {
+            google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(() => {
+                try {
+                    const chart = new google.visualization.PieChart(document.getElementById('pieChartDiv'));
+                    const options = {
+                        title: `${roomData.roomType}`,
+                        width: 280,
+                        height: 220,
+                        backgroundColor: 'transparent',
+                        titleTextStyle: { color: '#333', fontSize: 14 },
+                        legend: { textStyle: { color: '#333' } },
+                        pieSliceText: 'value',
+                        chartArea: { left: 10, top: 30, width: '90%', height: '80%' }
+                    };
+                    chart.draw(google.visualization.arrayToDataTable(chartData), options);
+                } catch (error) {
+                    alert('เกิดข้อผิดพลาดในการสร้าง Pie Chart: ' + error.message);
+                }
+            });
+        }
+
+        // ปรับ loadRoomDataAndCreateChart ให้เรียก createChartsForRoom
+        function loadRoomDataAndCreateChart(roomData) {
+            const dataSource = document.getElementById('dataSource').value;
+            switch(dataSource) {
+                case 'sheets':
+                    loadDataFromGoogleSheets(roomData)
+                        .then(data => {
+                            if (data && data.length > 0) {
+                                createChartsForRoom(data, roomData);
+                            } else {
+                                alert('ไม่พบข้อมูลใน Google Sheets');
+                            }
+                        })
+                        .catch(error => {
+                            alert('ไม่สามารถโหลดข้อมูลจาก Google Sheets: ' + error);
+                        });
+                    break;
+                case 'excel':
+                    if (uploadedExcelData) {
+                        const excelData = processExcelData(uploadedExcelData, roomData);
+                        if (excelData && excelData.length > 0) {
+                            createChartsForRoom(excelData, roomData);
+                        } else {
+                            alert('ไม่พบข้อมูลใน Excel');
+                        }
+                    } else {
+                        alert('กรุณาอัปโหลดไฟล์ Excel ก่อน');
+                    }
+                    break;
+                default:
+                    alert('กรุณาเลือกแหล่งข้อมูลที่ถูกต้อง');
+                    break;
+            }
+        }
+
+        async function loadDataFromGoogleSheets(roomData) {
+            try {
+                console.log('กำลังโหลดข้อมูลจาก Google Sheets...');
+                console.log('Room Data:', roomData);
+                
+                // ใช้ Google Sheets API v4
+                const apiKey = 'AIzaSyCcOGXLl1WhKknUNzuc16GeH75huYWovhc';
+                const sheetId = '1bdPov0X_M_IRYxRN-V6XH_nQzfTNREO9XAbdOnd2u_g';
+                const range = 'A1:Z100'; // ปรับตามข้อมูลจริง
+                
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+                console.log('URL:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Google Sheets Data:', data);
+                
+                if (data.values && data.values.length > 0) {
+                    console.log('พบข้อมูลใน Sheets:', data.values.length, 'แถว');
+                    // แปลงข้อมูลจาก Sheets เป็นรูปแบบที่เหมาะสมกับห้อง
+                    const processedData = processSheetData(data.values, roomData);
+                    console.log('Processed Data:', processedData);
+                    return processedData;
+                } else {
+                    console.log('ไม่พบข้อมูลใน Sheets');
+                    return null;
+                }
+                
+            } catch (error) {
+                console.error('Error loading from Google Sheets:', error);
+                alert('เกิดข้อผิดพลาดในการโหลดข้อมูลจาก Google Sheets: ' + error.message);
+                return null;
+            }
+        }
+
+        function processSheetData(sheetData, roomData) {
+            console.log('Processing sheet data for room:', roomData);
+            console.log('Raw sheet data:', sheetData);
+            
+            // แปลงชื่อห้องที่คลิกให้เป็น lowercase และตัดช่องว่าง
+            const targetName = (roomData.roomType || '').replace(/\s+/g, '').toLowerCase();
+            let matchedRow = null;
+            let header = sheetData[0];
+            
+            // หา header
+            if (sheetData.length > 0) {
+                // วนลูปหาแถวที่ตรงกับชื่อห้องในคอลัมน์แรกเท่านั้น
+                for (let i = 1; i < sheetData.length; i++) {
+                    const row = sheetData[i];
+                    const sheetName = (row[0] || '').replace(/\s+/g, '').toLowerCase();
+                    console.log(`เทียบ: '${targetName}' <-> '${sheetName}'`);
+                    if (sheetName === targetName) {
+                        matchedRow = row;
+                        break;
+                    }
+                }
+            }
+            if (!matchedRow) {
+                console.log('ไม่พบข้อมูลที่ตรงกับชื่อห้องในคอลัมน์แรก');
+                return null;
+            }
+            // สร้างข้อมูลกราฟจาก header และ matchedRow (ข้ามคอลัมน์ 0)
+            const chartData = [['หัวข้อ', 'ค่า']];
+            for (let j = 1; j < matchedRow.length; j++) {
+                if (header[j] && matchedRow[j]) {
+                    let value = matchedRow[j];
+                    if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                        value = parseFloat(value);
+                    }
+                    chartData.push([header[j], value]);
+                }
+            }
+            console.log('DEBUG: chartData ที่จะใช้วาดกราฟ:', chartData);
+            return [header, matchedRow]; // ส่ง header กับ matchedRow กลับไปให้ createChartsForRoom ใช้
+        }
+
+        function generateMockData(roomData) {
+            // สร้างข้อมูลจำลองตามประเภทห้อง
+            const data = [];
+            
+            if (roomData.roomType.includes('ห้องเรียน')) {
+                data.push(['วิชา', 'จำนวนนักเรียน']);
+                data.push(['คณิตศาสตร์', Math.floor(Math.random() * 30) + 20]);
+                data.push(['วิทยาศาสตร์', Math.floor(Math.random() * 30) + 20]);
+                data.push(['ภาษาไทย', Math.floor(Math.random() * 30) + 20]);
+                data.push(['ภาษาอังกฤษ', Math.floor(Math.random() * 30) + 20]);
+            } else if (roomData.roomType.includes('ห้องปฏิบัติการ')) {
+                data.push(['อุปกรณ์', 'จำนวน']);
+                data.push(['คอมพิวเตอร์', Math.floor(Math.random() * 20) + 10]);
+                data.push(['เครื่องมือ', Math.floor(Math.random() * 15) + 5]);
+                data.push(['โต๊ะทำงาน', Math.floor(Math.random() * 10) + 5]);
+            } else {
+                data.push(['รายการ', 'จำนวน']);
+                data.push(['โต๊ะ', Math.floor(Math.random() * 20) + 10]);
+                data.push(['เก้าอี้', Math.floor(Math.random() * 30) + 20]);
+                data.push(['ตู้', Math.floor(Math.random() * 5) + 2]);
+            }
+            
+            return data;
         }
 
         function createWindowsAndFrames(group, config, totalHeight, buildingNumber, scale) {
@@ -697,7 +1292,43 @@
                 });
             });
 
-           
+            // การควบคุมแหล่งข้อมูล
+            document.getElementById('dataSource').addEventListener('change', (e) => {
+                const fileUploadGroup = document.getElementById('fileUploadGroup');
+                if (e.target.value === 'excel') {
+                    fileUploadGroup.style.display = 'block';
+                } else {
+                    fileUploadGroup.style.display = 'none';
+                }
+            });
+
+            // การอัปโหลดไฟล์ Excel
+            document.getElementById('excelFile').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            
+                            // ใช้ sheet แรก
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            
+                            // แปลงเป็น JSON
+                            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                            uploadedExcelData = jsonData;
+                            
+                            alert('อัปโหลดไฟล์ Excel สำเร็จ!');
+                        } catch (error) {
+                            console.error('Error reading Excel file:', error);
+                            alert('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel');
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+            });
 
             // การควบคุมเมาส์
             let mouseDown = false;
@@ -734,6 +1365,28 @@
                 
                 mouseX = e.clientX;
                 mouseY = e.clientY;
+            });
+
+            // เพิ่มการคลิกที่ห้อง
+            renderer.domElement.addEventListener('click', (e) => {
+                // คำนวณตำแหน่งเมาส์ใน normalized device coordinates
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                
+                // อัปเดต raycaster
+                raycaster.setFromCamera(mouse, camera);
+                
+                // หาวัตถุที่ถูกคลิก
+                const intersects = raycaster.intersectObjects(scene.children, true);
+                
+                if (intersects.length > 0) {
+                    const clickedObject = intersects[0].object;
+                    
+                    // ตรวจสอบว่าเป็นห้องหรือไม่
+                    if (clickedObject.userData && clickedObject.userData.isRoom) {
+                        onRoomClick(clickedObject);
+                    }
+                }
             });
 
             // การ Zoom ด้วยล้อเมาส์
@@ -775,26 +1428,35 @@
             renderer.render(scene, camera);
         }
 
-       
-
-        // sheetId และ range สำหรับ sheet ที่กำหนด
-        const sheetId = '1mNhO3gEdTDy_PYWezLK15VILzljcTiO378e2GcbLBsE';
-        const range = 'A1:A7';
-
-        // ฟังก์ชันเริ่มต้นใหม่ ให้ใช้สีขาวแทนการโหลดจากชีท
-        function startAppWithSheetColors() {
-            // ใช้สีขาวสำหรับทุกตึก
-            for (let i = 0; i < buildingColors.length; i++) {
-                buildingColors[i] = 0xFFFFFF; // สีขาว
-            }
-            // เริ่มต้นโปรแกรม
-            init();
-        }
-
-        // เรียกใช้แทน init();
-        startAppWithSheetColors();
-
         function createColoredRooms(group, config, totalHeight, buildingNumber, scale) {
+            // ประกาศ customRoomNames ที่นี่ (ต้นฟังก์ชัน)
+            const customRoomNames = {
+                '1-0': 'กองตรวจราชการ',
+                '1-2': 'ศูนย์ปฏิบัติการต่อต้านการทุจริต',
+                '1-4': 'สำนักสารนิเทศ',
+                '1-6': 'วิทยาลัยนักบริหารสาธารณสุข',
+                '2-0': 'สํานักงานเลขานุการคณะกรรมการบําบัดรักษาและฟื้นฟูผู้ติดยาเสพติด',
+                '2-2': 'สำนักวิชาการสาธารณสุข',
+                '2-4': 'สำนักส่งเสริมสนับสนุนการผลิต พัฒนาแพทย์และบุคลากรทางการแพทย์',
+                '2-6': 'สำนักสุขภาพดิจิทัล',
+                '3-0': 'กองบริหารทรัพยากรบุคคล',
+                '3-2': 'สำนักงานมาตรฐานวินัยและระบบคุณธรรม',
+                '3-4': 'กองบริหารการคลัง',
+                '3-6': 'กองกลาง',
+                '4-0': 'สำนักส่งเสริมและสนับสนุนอาหารปลอดภัย',
+                '4-2': 'กองยุทธศาสตร์และแผนงาน',
+                '4-4': 'กองเศรษฐกิจสุขภาพและหลักประกันสุขภาพ',
+                '4-6': 'กองสนับสนุนระบบสุขภาพปฐมภูมิ',
+                '5-0': 'กองสาธารณสุขฉุกเฉิน',
+                '5-2': 'กลุ่มตรวจสอบภายใน',
+                '5-4': 'กลุ่มพัฒนาระบบบริหาร',
+                '5-6': 'กองกฎหมาย',
+                '6-0': 'กองการต่างประเทศ',
+                '6-2': 'กองการพยาบาล',
+                '6-4': 'กองบริหารการสาธารณสุข',
+                '6-6': 'ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร',
+                // เพิ่ม mapping ตามต้องการ
+            };
             const roomColors = [
                 0xFF0000, // สีแดงสด
                 0x00FF00, // สีเขียวสด
@@ -848,9 +1510,268 @@
                     roomZ
                 );
                 
+                // เพิ่มข้อมูลห้องสำหรับการคลิก
+                let key;
+                if (buildingNumber === 7) {
+                    key = `${buildingNumber}-${1}`;
+                } else {
+                    key = `${buildingNumber}-${floor}`;
+                }
+                const roomName = customRoomNames[key] || `กอง ${key}`;
+                room.userData = {
+                    isRoom: true,
+                    buildingNumber: buildingNumber,
+                    floor: floor,
+                    roomType: roomName,
+                    color: roomColor
+                };
+                
                 group.add(room);
             }
         }
+
+        // ฟังก์ชันสำหรับโหลดข้อมูลจาก Excel (ผ่าน Google Sheets)
+        async function loadDataFromExcel(roomData) {
+            try {
+                // วิธีที่ 1: อัปโหลด Excel ไปยัง Google Sheets แล้วใช้ API
+                const apiKey = 'AIzaSyCcOGXLl1WhKknUNzuc16GeH75huYWovhc';
+                const sheetId = '1bdPov0X_M_IRYxRN-V6XH_nQzfTNREO9XAbdOnd2u_g';
+                const range = 'A1:Z100';
+                
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.values && data.values.length > 0) {
+                    return processExcelData(data.values, roomData);
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error loading from Excel via Sheets:', error);
+                return null;
+            }
+        }
+
+        // ฟังก์ชันสำหรับประมวลผลข้อมูล Excel
+        function processExcelData(excelData, roomData) {
+            // เหมือนกับ processSheetData แต่ใช้กับ excelData
+            const targetName = (roomData.roomType || '').replace(/\s+/g, '').toLowerCase();
+            let matchedRow = null;
+            let header = excelData[0];
+            if (excelData.length > 0) {
+                for (let i = 1; i < excelData.length; i++) {
+                    const row = excelData[i];
+                    const sheetName = (row[0] || '').replace(/\s+/g, '').toLowerCase();
+                    if (sheetName === targetName) {
+                        matchedRow = row;
+                        break;
+                    }
+                }
+            }
+            if (!matchedRow) {
+                return null;
+            }
+            return [header, matchedRow];
+        }
+
+        function testGoogleSheets() {
+            console.log('ทดสอบการเชื่อมต่อ Google Sheets...');
+            
+            // ทดสอบการโหลดข้อมูลทั้งหมดจาก Sheets
+            const apiKey = 'AIzaSyCcOGXLl1WhKknUNzuc16GeH75huYWovhc';
+            const sheetId = '1bdPov0X_M_IRYxRN-V6XH_nQzfTNREO9XAbdOnd2u_g';
+            const range = 'A1:Z100';
+            
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+            
+            fetch(url)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('✅ ข้อมูลทั้งหมดจาก Google Sheets:', data);
+                    
+                    if (data.values && data.values.length > 0) {
+                        console.log('📊 จำนวนแถวที่พบ:', data.values.length);
+                        
+                        // แสดงข้อมูลทุกแถว
+                        data.values.forEach((row, index) => {
+                            console.log(`📋 แถว ${index + 1}:`, row);
+                        });
+                        
+                        // สร้างข้อความแสดงข้อมูล
+                        let dataText = 'ข้อมูลใน Google Sheets:\n\n';
+                        data.values.forEach((row, index) => {
+                            dataText += `แถว ${index + 1}: ${row.join(' | ')}\n`;
+                        });
+                        
+                        alert('✅ เชื่อมต่อ Google Sheets สำเร็จ!\n\n' + dataText);
+                    } else {
+                        console.log('❌ ไม่พบข้อมูลใน Sheets');
+                        alert('❌ ไม่พบข้อมูลใน Google Sheets\n\nกรุณาตรวจสอบ:\n1. มีข้อมูลใน Sheet\n2. Sheet เป็น Public');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error:', error);
+                    alert('❌ เกิดข้อผิดพลาด:\n\n' + error.message);
+                });
+        }
+
+        function showPieChartFromColumnB() {
+            if (!sheetData) {
+                alert('ยังไม่มีข้อมูล Google Sheet');
+                return;
+            }
+            console.log('sheetData:', sheetData);
+            const header = sheetData[0];
+            const dataRows = sheetData.slice(1);
+
+            if (!header || header.length < 2) {
+                alert('ไม่พบคอลัมน์ B ในข้อมูล Google Sheet');
+                return;
+            }
+
+            // สร้าง object สำหรับนับจำนวนแต่ละค่าหรือรวมค่าตัวเลข
+            const valueCount = {};
+
+            dataRows.forEach((row, idx) => {
+                if (!row || row.length < 2) {
+                    console.log('ข้ามแถวที่ไม่มีคอลัมน์ B:', row);
+                    return;
+                }
+                const value = row[1]; // คอลัมน์ B (index 1)
+                if (value) {
+                    if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                        valueCount[header[1]] = (valueCount[header[1]] || 0) + parseFloat(value);
+                    } else {
+                        valueCount[value] = (valueCount[value] || 0) + 1;
+                    }
+                }
+            });
+
+            // เตรียมข้อมูลสำหรับ Pie Chart
+            const chartData = [['หัวข้อ', 'จำนวน']];
+            for (const key in valueCount) {
+                chartData.push([key, valueCount[key]]);
+            }
+            console.log('chartData for Pie Chart:', chartData);
+
+            if (chartData.length <= 1) {
+                alert('ไม่มีข้อมูลในคอลัมน์ B สำหรับสร้าง Pie Chart');
+                document.getElementById('pieChartContainer').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('pieChartContainer').style.display = 'block';
+            google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(() => {
+                try {
+                    const chart = new google.visualization.PieChart(document.getElementById('pieChartDiv'));
+                    const options = {
+                        title: 'Pie Chart ผลการประเมิน',
+                        width: 280,
+                        height: 220,
+                        backgroundColor: 'transparent',
+                        titleTextStyle: { color: '#333', fontSize: 14 },
+                        legend: { textStyle: { color: '#333' } },
+                        pieSliceText: 'value',
+                        chartArea: { left: 10, top: 30, width: '90%', height: '80%' }
+                    };
+                    chart.draw(google.visualization.arrayToDataTable(chartData), options);
+                } catch (error) {
+                    alert('เกิดข้อผิดพลาดในการสร้าง Pie Chart: ' + error.message);
+                    document.getElementById('pieChartContainer').style.display = 'none';
+                }
+            });
+        }
+
+        // ปรับ showPieChartForRoom ให้รับ header, row และวาด Pie Chart หัวข้อ-ค่า (C ถึง M)
+        function showPieChartForRoom(header, row) {
+            if (!header || !row) {
+                document.getElementById('pieChartContainer2').style.display = 'none';
+                return;
+            }
+            // นับจำนวนแต่ละประเภทใน column C ถึง M (รวม 'รอตรวจสอบ' แทน 'Optional' ทุกรูปแบบ)
+            const valueCount = {};
+            for (let j = 2; j <= 12; j++) { // C ถึง M
+                let value = row[j];
+                if (typeof value === 'string' && value.trim().toLowerCase() === 'optional') {
+                    value = 'รอตรวจสอบ';
+                }
+                if (value === "ผ่านเกณฑ์" || value === "ไม่ผ่านเกณฑ์" || value === "รอตรวจสอบ") {
+                    valueCount[value] = (valueCount[value] || 0) + 1;
+                }
+            }
+            const chartData = [['ผลการประเมิน', 'จำนวน']];
+            for (const key in valueCount) {
+                chartData.push([key, valueCount[key]]);
+            }
+            if (chartData.length <= 1) {
+                document.getElementById('pieChartContainer2').style.display = 'none';
+                return;
+            }
+            document.getElementById('pieChartContainer2').style.display = 'block';
+            google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(() => {
+                try {
+                    const chart = new google.visualization.PieChart(document.getElementById('pieChartDiv2'));
+                    const options = {
+                        title: 'ผลการประเมินความเสี่ยง',
+                        width: 280,
+                        height: 220,
+                        backgroundColor: 'transparent',
+                        titleTextStyle: { color: '#333', fontSize: 14 },
+                        legend: { textStyle: { color: '#333' } },
+                        pieSliceText: 'value',
+                        chartArea: { left: 10, top: 30, width: '90%', height: '80%' }
+                    };
+                    chart.draw(google.visualization.arrayToDataTable(chartData), options);
+                } catch (error) {
+                    alert('เกิดข้อผิดพลาดในการสร้าง Pie Chart: ' + error.message);
+                    document.getElementById('pieChartContainer2').style.display = 'none';
+                }
+            });
+        }
+
+        function closePieChart2() {
+            document.getElementById('pieChartContainer2').style.display = 'none';
+        }
+
+        let lastSelectedRoomName = null;
+
+        async function refreshGoogleSheets() {
+          await fetchSheetData();
+          alert('รีโหลดข้อมูล Google Sheets สำเร็จ!');
+          // Refresh Pie Chart รวม
+          showPieChartFromColumnB();
+          // Refresh panel ขวา (chartContainer) ด้วย object ปัจจุบันใน scene
+          if (selectedRoom && selectedRoom.userData && selectedRoom.userData.roomType) {
+            console.log('selectedRoom:', selectedRoom.userData.roomType);
+            let foundRoom = null;
+            scene.traverse(function(obj) {
+              if (obj.userData && obj.userData.isRoom && obj.userData.roomType === selectedRoom.userData.roomType) {
+                foundRoom = obj;
+              }
+            });
+            console.log('foundRoom:', foundRoom ? foundRoom.userData.roomType : null);
+            if (foundRoom) {
+              onRoomClick(foundRoom);
+            } else {
+              document.getElementById('chartContainer').style.display = 'none';
+              document.getElementById('pieChartContainer2').style.display = 'none';
+              selectedRoom = null;
+            }
+          }
+        }
+    </script>
+    <script>
+      init();
     </script>
 </body>
 </html>
