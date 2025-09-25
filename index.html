@@ -342,6 +342,11 @@
         let selectedRoom = null; // เก็บห้องที่เลือก
         let uploadedExcelData = null; // เก็บข้อมูล Excel ที่อัปโหลด
         let sheetData = null; // ตัวแปรเก็บข้อมูล Google Sheet
+
+        // กำหนดค่ากลางสำหรับ Google Sheets (ใช้ทุกที่ให้ตรงกัน)
+        const GOOGLE_API_KEY = 'AIzaSyCcOGXLl1WhKknUNzuc16GeH75huYWovhc';
+        const GOOGLE_SHEET_ID = '1bdPov0X_M_IRYxRN-V6XH_nQzfTNREO9XAbdOnd2u_g';
+        const GOOGLE_SHEET_RANGE = 'A1:Z100';
         
         const buildingColors = [
             0xFFFFFF, // สีขาว
@@ -637,10 +642,7 @@
 
         // โหลดข้อมูล Google Sheet เมื่อเริ่มต้น
         async function fetchSheetData() {
-          const apiKey = 'AIzaSyBdkboT87Ol2-MGiRMWEwlZT77TdpaNBSg';
-          const sheetId = '1dR3CjhxmfOZqOKVMKLB6JU4MONZ6h8RNsI4_bw0lL4w';
-          const range = 'A1:Z100';
-          const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+          const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values/${GOOGLE_SHEET_RANGE}?key=${GOOGLE_API_KEY}&t=${Date.now()}`;
           const response = await fetch(url);
           const data = await response.json();
           sheetData = data.values;
@@ -829,12 +831,8 @@
                 console.log('กำลังโหลดข้อมูลจาก Google Sheets...');
                 console.log('Room Data:', roomData);
                 
-                // ใช้ Google Sheets API v4
-                const apiKey = 'AIzaSyCcOGXLl1WhKknUNzuc16GeH75huYWovhc';
-                const sheetId = '1bdPov0X_M_IRYxRN-V6XH_nQzfTNREO9XAbdOnd2u_g';
-                const range = 'A1:Z100'; // ปรับตามข้อมูลจริง
-                
-                const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+                // ใช้ Google Sheets API v4 (ใช้ค่ากลาง)
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values/${GOOGLE_SHEET_RANGE}?key=${GOOGLE_API_KEY}&t=${Date.now()}`;
                 console.log('URL:', url);
                 
                 const response = await fetch(url);
@@ -1533,12 +1531,8 @@
         // ฟังก์ชันสำหรับโหลดข้อมูลจาก Excel (ผ่าน Google Sheets)
         async function loadDataFromExcel(roomData) {
             try {
-                // วิธีที่ 1: อัปโหลด Excel ไปยัง Google Sheets แล้วใช้ API
-                const apiKey = 'AIzaSyCcOGXLl1WhKknUNzuc16GeH75huYWovhc';
-                const sheetId = '1bdPov0X_M_IRYxRN-V6XH_nQzfTNREO9XAbdOnd2u_g';
-                const range = 'A1:Z100';
-                
-                const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+                // วิธีที่ 1: อัปโหลด Excel ไปยัง Google Sheets แล้วใช้ API (ใช้ค่ากลาง)
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values/${GOOGLE_SHEET_RANGE}?key=${GOOGLE_API_KEY}&t=${Date.now()}`;
                 
                 const response = await fetch(url);
                 const data = await response.json();
@@ -1580,11 +1574,7 @@
             console.log('ทดสอบการเชื่อมต่อ Google Sheets...');
             
             // ทดสอบการโหลดข้อมูลทั้งหมดจาก Sheets
-            const apiKey = 'AIzaSyCcOGXLl1WhKknUNzuc16GeH75huYWovhc';
-            const sheetId = '1bdPov0X_M_IRYxRN-V6XH_nQzfTNREO9XAbdOnd2u_g';
-            const range = 'A1:Z100';
-            
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values/${GOOGLE_SHEET_RANGE}?key=${GOOGLE_API_KEY}&t=${Date.now()}`;
             
             fetch(url)
                 .then(response => {
